@@ -3,11 +3,59 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 
+// module.exports = {
+//   register: async (req, res) => {
+//     const errors = validationResult(req)
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+//     //requirements for the register
+//     const { email, password } = req.body;
 
+//     try {
+//       let user = await User.findOne({ email });
+//       // check if user exists
+//       if (user) {
+//         return res
+//           .status(400)
+//           .json({ errors: [{ msg: "User already exists" }] });
+//       }
+//       user = new User({
+//         email,
+//         password
+//       });
+//       const salt = await bcrypt.genSalt(10);
+//       user.password = await bcrypt.hash(password, salt);
+//       await user.save();
+
+//       const payload = {
+//         user: {
+//           id: user.id,
+//           email: user.email
+//         }
+//       };
+
+//       jwt.sign(
+//         payload,
+//         process.env.SECRET_KEY,
+//         {
+//           expiresIn: 36000
+//         },
+//         (err, token) => {
+//           if (err) throw err;
+//           res.json({ token });
+//         }
+//       );
+//     } catch (err) {
+//       console.log(err.message);
+//       res.status(500).send("Server Error");
+//     }
+//   }
+// };
 
 module.exports = {
-  register: async (req, res) => {
-    const errors = validationResult(req)
+  registerLogin: async (req, res) => {
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
@@ -17,44 +65,59 @@ module.exports = {
     try {
       let user = await User.findOne({ email });
       // check if user exists
-      if (user) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "User already exists" }] });
+      if (!user) {
+        res.status(400).json({ errors: [{ msg: "User already exists" }] });
+
+        user = new User({
+          firstName,
+          lastName,
+          email,
+          password
+        });
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        await user.save();
+
+        const payload = {
+          user: {
+            id: user.id,
+            email: user.email
+          }
+        };
+
+        jwt.sign(
+          payload,
+          process.env.SECRET_KEY,
+          {
+            expiresIn: 36000
+          },
+          (err, token) => {
+            if (err) throw err;
+            res.json({ token });
+          }
+        );
+      } else {
+        const isMatch = await bcrypt.compare(password, user.password)
+        if(isMatch){
+          const payload = {
+            id: user.id,
+            email: user.email
+          }
+
+          jwt.sign( payload, process.env.SECRET_KEY, {
+            expiresIn: 36000
+          },
+          (err, token) => {
+            if(err) throw err 
+            res.json({token})
+          }
+          )
+        }
       }
-      user = new User({
-        email,
-        password
-      });
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-      await user.save();
-
-      const payload = {
-        user: {
-          id: user.id,
-          email: user.email
-        }
-      };
-
-      jwt.sign(
-        payload,
-        process.env.SECRET_KEY,
-        {
-          expiresIn: 36000
-        },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
     } catch (err) {
       console.log(err.message);
       res.status(500).send("Server Error");
-    },
-  }
-  login : async (req, res) => {
-      
+    }
   }
 };
 

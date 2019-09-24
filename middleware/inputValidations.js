@@ -3,8 +3,10 @@ const { check } = require("express-validator");
 module.exports = {
   validate: method => {
     switch (method) {
-      case "signin": {
+      case "signup": {
         return [
+          check('firstName', "First name can not be blank").not().isEmpty(),
+          check('lastName', "Last name can not be blank").not().isEmpty(),
           check("email", "Please include valid email").isEmail(),
           check(
             "password",
@@ -14,11 +16,11 @@ module.exports = {
       }
       case "login": {
         return [
-          check("email", "Please include valid email")
+          check("email", "Valid Email or Password is required")
             .isEmail()
             .not()
             .isEmpty(),
-          check("password", "Password required ").exists()
+          check("password", "Email or Password required ").exists()
         ];
       }
     }
