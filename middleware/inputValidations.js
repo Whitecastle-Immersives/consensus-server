@@ -1,9 +1,9 @@
-const { check, valditionResult } = require("express-validator/check");
+const { check } = require("express-validator");
 
 module.exports = {
   validate: method => {
     switch (method) {
-      case "signup": {
+      case "signin": {
         return [
           check("email", "Please include valid email").isEmail(),
           check(

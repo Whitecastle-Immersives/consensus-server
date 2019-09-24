@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const moment = require("monent");
+const moment = require("moment");
+const now = moment()
 
 const UserSchema = new mongoose.Schema({
   email: { type: String, lowercase: true },
